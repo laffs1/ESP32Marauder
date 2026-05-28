@@ -265,7 +265,6 @@ void setup()
     pinMode(CHARGING_PIN, INPUT);
   #endif
   
-  // Preset SPI CS pins to avoid bus conflicts
   #ifdef HAS_SCREEN
     digitalWrite(TFT_CS, HIGH);
   #endif
@@ -399,10 +398,10 @@ void setup()
     display_obj.tft.drawCentreString("Apple + Windows + Samsung", TFT_WIDTH/2, TFT_HEIGHT * 0.70, 1);
   #endif
 
-  cli_obj.parse("#blespam -t all");
+  cli_obj.parseCommand("#blespam -t all");   // ← Fixed line
   // ============================================================
 
-  // Keep spamming forever - prevents menu from stopping it
+  // Keep spamming forever (prevents menu from stopping it)
   while (true) {
     currentTime = millis();
     cli_obj.main(currentTime);
@@ -413,5 +412,5 @@ void setup()
 
 void loop()
 {
-  // This will never run because of the while(true) in setup()
+  // Never reached because of while(true) above
 }
