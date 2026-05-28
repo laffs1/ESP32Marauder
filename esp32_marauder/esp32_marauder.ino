@@ -122,11 +122,10 @@ uint32_t currentTime  = 0;
   #define BL_RESOLUTION 8
   const uint8_t BL_LEVELS[] = {26, 51, 77, 102, 128, 153, 179, 204, 230, 255};
   const uint8_t BL_NUM_LEVELS = 10;
-  uint8_t bl_level_idx = 9; // default full brightness
+  uint8_t bl_level_idx = 9;
   Preferences bl_prefs;
 #endif
 
-// Helper macros for LEDC API compatibility (2.x vs 3.x board package)
 #ifdef HAS_SCREEN
   #ifndef HAS_MINI_SCREEN
     #if ESP_ARDUINO_VERSION_MAJOR >= 3
@@ -199,7 +198,6 @@ uint32_t currentTime  = 0;
       #if defined(MARAUDER_MINI) || defined(MARAUDER_MINI_V3)
         digitalWrite(TFT_BL, LOW);
       #endif
-    
       #if !defined(MARAUDER_MINI) && !defined(MARAUDER_MINI_V3)
         digitalWrite(TFT_BL, HIGH);
       #endif
@@ -211,7 +209,6 @@ uint32_t currentTime  = 0;
       #if defined(MARAUDER_MINI) || defined(MARAUDER_MINI_V3)
         digitalWrite(TFT_BL, HIGH);
       #endif
-    
       #if !defined(MARAUDER_MINI) && !defined(MARAUDER_MINI_V3)
         digitalWrite(TFT_BL, LOW);
       #endif
@@ -237,9 +234,7 @@ void setup()
   #endif
 
   Serial.begin(115200);
-
-  while(!Serial)
-    delay(10);
+  while(!Serial) delay(10);
 
   #ifdef HAS_C5_SD
     sharedSPI.begin(SD_SCK, SD_MISO, SD_MOSI);
@@ -279,15 +274,12 @@ void setup()
   Serial.println("ESP-IDF version is: " + String(esp_get_idf_version()));
 
   #ifdef HAS_PSRAM
-    if (!psramInit()) {
-      Serial.println(F("PSRAM not available"));
-    }
+    if (!psramInit()) Serial.println(F("PSRAM not available"));
   #endif
 
   #ifdef HAS_SIMPLEX_DISPLAY
     #if defined(HAS_SD)
-      if(!sd_obj.initSD())
-        Serial.println(F("SD Card NOT Supported"));
+      if(!sd_obj.initSD()) Serial.println(F("SD Card NOT Supported"));
     #endif
   #endif
 
@@ -327,7 +319,6 @@ void setup()
   settings_obj.begin();
 
   const char* type = settings_obj.getSettingType("ChanHop");
-
   if (type == nullptr || type[0] == '\0') {
     Serial.println(F("Current settings format not supported. Installing new default settings..."));
     settings_obj.createDefaultSettings(SPIFFS);
@@ -337,8 +328,7 @@ void setup()
 
   #ifndef HAS_SIMPLEX_DISPLAY
     #if defined(HAS_SD)
-      if(!sd_obj.initSD())
-        Serial.println(F("SD Card NOT Supported"));
+      if(!sd_obj.initSD()) Serial.println(F("SD Card NOT Supported"));
     #endif
   #endif
 
@@ -353,9 +343,6 @@ void setup()
 
   #ifdef HAS_BATTERY
     battery_obj.RunSetup();
-  #endif
-
-  #ifdef HAS_BATTERY
     battery_obj.battery_level = battery_obj.getBatteryLevel();
   #endif
 
@@ -395,13 +382,13 @@ void setup()
     display_obj.tft.setTextColor(TFT_RED, TFT_BLACK);
     display_obj.tft.drawCentreString("BLE SPAM ACTIVE", TFT_WIDTH/2, TFT_HEIGHT * 0.35, 2);
     display_obj.tft.drawCentreString("-t all", TFT_WIDTH/2, TFT_HEIGHT * 0.55, 2);
-    display_obj.tft.drawCentreString("Apple + Windows + Samsung", TFT_WIDTH/2, TFT_HEIGHT * 0.70, 1);
+    display_obj.tft.drawCentreString("All Targets", TFT_WIDTH/2, TFT_HEIGHT * 0.70, 1);
   #endif
 
-  cli_obj.parseCommand("#blespam -t all");   // ← Fixed line
+  cli_obj.parseCommand(String("#blespam -t all"));
   // ============================================================
 
-  // Keep spamming forever (prevents menu from stopping it)
+  // Stay in spam mode forever
   while (true) {
     currentTime = millis();
     cli_obj.main(currentTime);
@@ -412,5 +399,5 @@ void setup()
 
 void loop()
 {
-  // Never reached because of while(true) above
+  // Never runs because of while(true) in setup()
 }
