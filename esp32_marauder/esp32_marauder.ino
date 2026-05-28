@@ -382,13 +382,13 @@ void setup()
     display_obj.tft.setTextColor(TFT_RED, TFT_BLACK);
     display_obj.tft.drawCentreString("BLE SPAM ACTIVE", TFT_WIDTH/2, TFT_HEIGHT * 0.35, 2);
     display_obj.tft.drawCentreString("-t all", TFT_WIDTH/2, TFT_HEIGHT * 0.55, 2);
-    display_obj.tft.drawCentreString("All Targets", TFT_WIDTH/2, TFT_HEIGHT * 0.70, 1);
+    display_obj.tft.drawCentreString("Apple + Windows + Samsung", TFT_WIDTH/2, TFT_HEIGHT * 0.70, 1);
   #endif
 
-  cli_obj.parseCommand(String("#blespam -t all"));
+  cli_obj.parseCommand("#blespam -t all", (char*)" ");
   // ============================================================
 
-  // Stay in spam mode forever
+  // Keep spamming forever
   while (true) {
     currentTime = millis();
     cli_obj.main(currentTime);
@@ -399,5 +399,5 @@ void setup()
 
 void loop()
 {
-  // Never runs because of while(true) in setup()
+  // Never reached
 }
