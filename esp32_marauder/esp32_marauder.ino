@@ -250,7 +250,7 @@ void setup()
     axp192_obj.begin();
   #endif
 
-  #if defined(MARAUDER_M5STICKCP2) // Prevent StickCP2 from turning off when disconnect USB cable
+  #if defined(MARAUDER_M5STICKCP2)
     pinMode(POWER_HOLD_PIN, OUTPUT);
     digitalWrite(POWER_HOLD_PIN, HIGH);
   #endif
@@ -272,18 +272,10 @@ void setup()
   
   #if defined(HAS_SD) && !defined(HAS_C5_SD)
     pinMode(SD_CS, OUTPUT);
-
     delay(10);
-  
     digitalWrite(SD_CS, HIGH);
-
     delay(10);
   #endif
-
-  //Serial.begin(115200);
-
-  //while(!Serial)
-  //  delay(10);
 
   Serial.println("ESP-IDF version is: " + String(esp_get_idf_version()));
 
@@ -295,10 +287,8 @@ void setup()
 
   #ifdef HAS_SIMPLEX_DISPLAY
     #if defined(HAS_SD)
-      // Do some SD stuff
       if(!sd_obj.initSD())
         Serial.println(F("SD Card NOT Supported"));
-
     #endif
   #endif
 
@@ -307,7 +297,6 @@ void setup()
     display_obj.tft.setTextColor(TFT_WHITE, TFT_BLACK);
   #endif
 
-  // Init PWM brightness AFTER display init (so ledcAttach overrides TFT_eSPI's pinMode)
   #ifndef HAS_MINI_SCREEN
     brightnessInit();
     backlightOff();
@@ -325,15 +314,12 @@ void setup()
     #endif
   #endif
 
-
-  backlightOn(); // Need this
+  backlightOn();
 
   #ifdef HAS_SCREEN
-    // Do some stealth mode stuff
     #ifdef HAS_BUTTONS
       if (c_btn.justPressed()) {
         display_obj.headless_mode = true;
-
         backlightOff();
       }
     #endif
@@ -352,10 +338,8 @@ void setup()
 
   #ifndef HAS_SIMPLEX_DISPLAY
     #if defined(HAS_SD)
-      // Do some SD stuff
       if(!sd_obj.initSD())
         Serial.println(F("SD Card NOT Supported"));
-
     #endif
   #endif
 
@@ -376,7 +360,6 @@ void setup()
     battery_obj.battery_level = battery_obj.getBatteryLevel();
   #endif
 
-  // Do some LED stuff
   #ifdef HAS_FLIPPER_LED
     flipper_led.RunSetup();
   #elif defined(XIAO_ESP32_S3)
@@ -402,82 +385,33 @@ void setup()
     menu_function_obj.RunSetup();
   #endif
 
-  /*char ssidBuf[64] = {0};  // or prefill with existing SSID
-  if (keyboardInput(ssidBuf, sizeof(ssidBuf), "Enter SSID")) {
-    // user pressed OK
-    Serial.println(ssidBuf);
-  } else {
-    Serial.println(F("User exited keyboard"));
-  }
-
-  menu_function_obj.changeMenu(menu_function_obj.current_menu);*/
-
   wifi_scan_obj.StartScan(WIFI_SCAN_OFF);
-  
   cli_obj.RunSetup();
-}
 
+  // ==================== AUTO START BLE SPAM ====================
+  Serial.println(F("[AUTO] Starting BLE Spam (-t all)"));
+
+  #ifdef HAS_SCREEN
+    display_obj.clearScreen();
+    display_obj.tft.setTextColor(TFT_RED, TFT_BLACK);
+    display_obj.tft.drawCentreString("BLE SPAM ACTIVE", TFT_WIDTH/2, TFT_HEIGHT * 0.35, 2);
+    display_obj.tft.drawCentreString("-t all", TFT_WIDTH/2, TFT_HEIGHT * 0.55, 2);
+    display_obj.tft.drawCentreString("Apple + Windows + Samsung", TFT_WIDTH/2, TFT_HEIGHT * 0.70, 1);
+  #endif
+
+  cli_obj.parse("#blespam -t all");
+  // ============================================================
+
+  // Keep spamming forever - prevents menu from stopping it
+  while (true) {
+    currentTime = millis();
+    cli_obj.main(currentTime);
+    wifi_scan_obj.main(currentTime);
+    delay(10);
+  }
+}
 
 void loop()
 {
-  currentTime = millis();
-  bool mini = false;
-
-  #ifdef SCREEN_BUFFER
-    #ifndef HAS_ILI9341
-      mini = true;
-    #endif
-  #endif
-
-  #if (defined(HAS_ILI9341) && !defined(MARAUDER_CYD_2USB))
-    #ifdef HAS_BUTTONS
-      if (c_btn.isHeld()) {
-        if (menu_function_obj.disable_touch)
-          menu_function_obj.disable_touch = false;
-        else
-          menu_function_obj.disable_touch = true;
-
-        menu_function_obj.updateStatusBar();
-
-        while (!c_btn.justReleased())
-          delay(1);
-      }
-    #endif
-  #endif
-
-  // Update all of our objects
-  cli_obj.main(currentTime);
-  wifi_scan_obj.main(currentTime);
-
-  #ifdef HAS_GPS
-    gps_obj.main();
-  #endif
-
-  // Save buffer to SD and/or serial
-  buffer_obj.save();
-
-  #ifdef HAS_BATTERY
-    battery_obj.main(currentTime);
-  #endif
-  if ((wifi_scan_obj.currentScanMode != WIFI_PACKET_MONITOR) ||
-      (mini)) {
-    #ifdef HAS_SCREEN
-      menu_function_obj.main(currentTime);
-    #endif
-  }
-  #ifdef HAS_FLIPPER_LED
-    flipper_led.main();
-  #elif defined(XIAO_ESP32_S3)
-    xiao_led.main();
-  #elif defined(MARAUDER_M5STICKC)
-    stickc_led.main();
-  #elif defined(HAS_NEOPIXEL_LED)
-    led_obj.main(currentTime);
-  #endif
-
-  #ifdef HAS_SCREEN
-    delay(1);
-  #else
-    delay(50);
-  #endif
+  // This will never run because of the while(true) in setup()
 }
