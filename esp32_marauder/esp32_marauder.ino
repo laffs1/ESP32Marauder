@@ -385,7 +385,12 @@ void setup()
     display_obj.tft.drawCentreString("Apple + Windows + Samsung", TFT_WIDTH/2, TFT_HEIGHT * 0.70, 1);
   #endif
 
-  cli_obj.parseCommand("#blespam -t all", (char*)" ");
+#ifdef HAS_BT
+  Serial.println(F("#blespam -t all"));
+  wifi_scan_obj.StartScan(BT_ATTACK_SPAM_ALL, TFT_MAGENTA);
+#else
+  Serial.println(F("Bluetooth not supported"));
+#endif
   // ============================================================
 
   // Keep spamming forever
